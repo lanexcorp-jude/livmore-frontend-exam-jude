@@ -1,38 +1,112 @@
-This is a [Next.js](https://nextjs.org/) project using an App Router model bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ReactJS Exam Project App
 
-## Getting Started
+This project is intended for exam purposes.
 
-First, copy the environment variables.
+## Project Details
 
-Second, install the necessary packages:
+This web application is powered by the following technologies:
+
+1. [Next.js](https://nextjs.org/) project using an App Router model bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app)
+2. [Hasura](https://hasura.io/) for GraphQL API service
+3. [Ant Design](https://ant.design/) for beautiful ReactJS component designs
+
+## Project Setup
+
+1. Copy the environment variables.
+2. Install the necessary packages:
 
 ```bash
 npm install
 ```
 
-Third, run the development server:
+3. Run the development server:
 
 ```bash
 npm run dev
 ```
 
+## Usage
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Hasura Setup and Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Hasura was set up via cloud configuration using [Neon Serverless PostgreSQL](https://neon.tech/) as its database.
 
-## Learn More
+This project used `Apollo Client` to be used to fetch, cache, and modify application data using GraphQL.
 
-To learn more about Next.js, take a look at the following resources:
+The Apollo client is created using `NextSSRApolloClient` to fit in NextJS.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+function makeClient() {
+  const httpLink = new HttpLink({
+    uri: "http://localhost:8000/"
+    headers: {
+      "x-hasura-admin-secret": "<YOUR_SECRET>",
+    },
+  });
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+  return new NextSSRApolloClient({
+    cache: new NextSSRInMemoryCache(),
+    link:
+      typeof window === "undefined"
+        ? ApolloLink.from([
+            new SSRMultipartLink({
+              stripDefer: true,
+            }),
+            httpLink,
+          ])
+        : httpLink,
+  });
+}
+```
 
-## Deploy on Vercel
+Queries / Mutations are created in GraphQL:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+export const GET_ITEMS = gql`
+  query getItems {
+    items {
+      id
+      room_status
+      capacity
+      created_at
+      location
+      name
+      occupy_category
+      occupy_from
+      occupy_to
+      price
+      updated_at
+    }
+  }
+`;
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Then it is called by the hooks provided by Apollo. Since it is made in `NextJS` with `Server Side Rendering (SSR)` features, Queries can be made directly before it the DOM is rendered
+
+```
+import { GET_ITEMS } from "./utilities/queries/queries";
+
+export default function Home() {
+  const { data, loading } = useQuery(GET_ITEMS);
+
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {data.items.map((item, index) => {
+          return <RoomTile {...item} key={index} />;
+        })}
+      </div>
+    </div>
+  );
+}
+```
