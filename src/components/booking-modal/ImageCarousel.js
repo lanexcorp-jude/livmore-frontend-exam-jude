@@ -1,7 +1,6 @@
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import { useState } from "react";
-import { Carousel } from "react-responsive-carousel";
 
 const ImageCarousel = () => {
   const items = [
@@ -42,25 +41,10 @@ const ImageCarousel = () => {
       <Button
         className="absolute right-3"
         icon={<RightOutlined />}
-        onClick={prevSlide}
+        onClick={nextSlide}
       />
     </div>
   );
-
-  // return (
-  //   <Carousel>
-  //     {roomImages.map((image, idx) => {
-  //       return (
-  //         <div key={idx} className="rounded w-full h-full">
-  //           <img
-  //             className="w-full h-full"
-  //             src={`/images/rooms/room-details/${image.name}`}
-  //           />
-  //         </div>
-  //       );
-  //     })}
-  //   </Carousel>
-  // );
 };
 
 export default ImageCarousel;
